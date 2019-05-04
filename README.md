@@ -1,6 +1,9 @@
 # windows-web
 桌面web
 
+# 效果图
+![QQ截图20190504231559.png](https://i.loli.net/2019/05/04/5ccdacce4c296.png)
+
 # 配置文件 AppConfig.xml
 ```
 <?xml version="1.0" encoding="utf-8" ?>
