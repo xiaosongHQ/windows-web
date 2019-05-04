@@ -1,0 +1,441 @@
+//作者信息渲染
+function getUserInfo(){
+    var html ="";
+    var html1 ="";
+    var uid = window.uid;
+    if(uid != undefined){
+        $.ajax({
+        url:"//interface.sina.cn/kd/getUserInfo.d.json?uid="+uid,
+         dataType: 'jsonp',
+          success: function (data) {
+                if(data.result.status && data.result.status.code == 0 && data.result.data !="") {
+
+                    var node = data.result.data;
+                    
+                    for(var i in node){
+                    
+                     var logo = node[i].m_logo, uname = node[i].uname, link = node[i].link,instro=node[i].m_intro;
+
+                        html += "作者 <a href='"+link+"' target='_blank' class='source ent-source' data-sudaclick='content_author_p'>"+uname+"</a>"
+                      html1 += "<div class='pic'><a href='"+link+"'><img src='"+logo+"'  alt='"+uname+"'></a></div>"+
+                                "<div class='info'>"+
+                                    "<h2 class='name'><a href='"+link+"' target='_blank'>"+uname+"</a></h2>"+
+                                    "<p class='intro'>"+instro+"</p>"+
+                               "</div>"
+                               
+                        $('.author').append(html);
+                        
+                          
+                         $('[node="author-card"]').append(html1);
+                    }
+                    
+                }
+            }
+        });
+    }else{
+       $('.author-card').hide(); 
+    }
+    
+}
+
+ getUserInfo();
+
+//获取作者文章
+function getList(){
+    var uid = window.uid;
+    if(uid != undefined){
+        $.ajax({
+            url:"//interface.sina.cn/kd/getUserInfo.d.json?uid="+uid,
+            type:"get",
+            dataType: 'jsonp',
+            success:function (data) {
+                if(data.result.status && data.result.status.code == 0 && data.result.data !="") {
+                 var node = data.result.data;
+                    for(var i in node){
+                        uname = node[i].uname;
+                        if(uname != undefined){
+                            //如果有作者名字 ，调用getArticle()函数 ，渲染列表
+                            getArticle(uname);
+                        }else{
+                            $(".author-list").hide(); 
+                        }
+                    }
+                } 
+            }
+        })
+    }else{
+        $(".author-list").hide(); 
+    }
+}
+getList();
+//获取正文页商品信息
+ function getProductInfo(){
+      var url = window.location.href;
+     // var url = "http://k.sina.com.cn/article_5777369699_1585baa63001009lgx.html?from=game";
+    var info_html = "";
+    $.ajax({
+        url:"//interface.sina.cn/kd/ad_goods.d.json?url="+url,
+        type:"get",
+        dataType: 'jsonp',
+        success:function (data){
+            if(data.result.status && data.result.status.code == 1 && data.result.data!=""){
+                var node =  data.result.data;
+                var sku_name = node.sku_name,
+                    sku_middle_url = node.sku_middle_url,
+                    img = node.img_url,
+                    price = node.price_pc,
+                    ec_plat_name = node.ec_plat_name;
+                    if(price=="0.00"){
+                       price = node.price_wl;
+                    }
+
+                    info_html =  '<div class="card_pic">'+
+                                   '<a href="'+sku_middle_url+'" target="_blank" data-sudaclick="component_productcard_p">'+
+                                    '<img class="img" src="'+img+'"></a>'+
+                                '</div>'+
+                                '<div class="card_info">'+
+                                    '<div class="info_title"><a href="'+sku_middle_url+'" target="_blank" alt="'+sku_name+'" data-sudaclick="component_productcard_p">'+sku_name+'</a></div>'+
+                                    '<div class="info_detail">'+
+                                       '<span class="span1">价格</span><span class="money">￥</span><a href="'+sku_middle_url+'" target="_blank" alt="'+sku_name+'" data-sudaclick="component_productcard_p"><span class="price">'+price +'</span></a>'+
+                                        '<span class="taobao">'+ec_plat_name+'</span>'+
+                                        '<a href="'+sku_middle_url+'" target="_blank" data-sudaclick="component_productcard_p"><span class="button" >去看看</span></a>'+
+                                    '</div>'+
+                                '</div>';
+            $('.goods-card').append(info_html);    
+            }else{
+                $('.goods-card').hide();
+            }
+        }
+    });
+ }
+ getProductInfo();
+function getArticle(uname){ 
+ var html = "";
+  $.ajax({
+       url: '//interface.sina.cn/kd/user_related_article.d.json?tp=9&q='+uname+'&fields=author&sort=ctime&size=3&toutiaoIdx=1&where=imgCount>0',
+       type: 'get',
+       dataType: 'jsonp',
+       success:function(data){
+            if(data.status && data.status.code == 0 && data.docs!=""){
+                var node = data.docs;
+                for(var i in node){
+                    var title = node[i].title,
+                    urlLink = node[i].url, pic = node[i].thumb, instro = node[i].instro;
+                    html +=
+                        '<li class="item">'+
+                            '<h3 class="name"><a href=" '+urlLink+'" target="_blank">'+title+'</a></h3>'+
+                            '<div class="pic">'+
+                                '<a href=" '+urlLink+'" target="_blank"><img src="'+ pic+'" alt=""></a>'+
+                            '</div>'+ 
+                            '<div class="info">'+
+                                '<p class="intro">'+ title+'</p>'+
+                                '<a href="'+urlLink+'" class="link" target="_blank">详细&gt;&gt;</a>'+
+                            '</div>'+
+                        '</li>'                        
+                }
+                $('.author-list-cont').append(html);
+            }else{
+                $(".author-list").hide();
+            }
+        }
+   });
+}
+/*右侧浮层工具*/
+$('[node-type="toTop"]').on('click',function(){
+    $('body,html').animate({scrollTop:0},500);
+    return false;
+});
+$('[node-type="toRelated"]').on('click',function(){
+    var _top = $('#tab_related').offset().top;
+    $('body,html').animate({scrollTop:_top},500);
+    return false;
+});
+$(window).on('scroll',function(){
+    //var self = obj;
+    var _top = $(document).scrollTop();
+    if(_top>=800){
+        $('[node-type="toTop"]').removeClass('fadeOut');    
+    }else{
+        $('[node-type="toTop"]').addClass('fadeOut'); 
+    }
+});
+// 
+$("[data-target='share_more']").hover(function(){
+    $("#share_more").show();
+},function(){
+    $("#share_more").hide();
+})
+$("#share_more").hover(function(){
+    $("#share_more").show();
+},function(){
+    $("#share_more").hide();
+})
+// 关注
+if($fid){
+   
+   $('[ data-action="cmd-focus"]').show();
+   
+    if(SINA_OUTLOGIN_LAYER.isLogin()){
+       $('[ data-action="cmd-focus"]').each(function(){
+            var $this = $(this);
+            
+            $.ajax({
+                url:'//api.weibo.com/2/users/show.json?source=2391992726' + '&uid=' + $fid,
+                dataType: 'jsonp',
+                success: function (data) {
+                    if (data.code && data.code == 1) {
+                        if (data.data.following == true) {
+                            var _href = $this.prev(".author").find(".ent-source").attr("href");
+                            $this.replaceWith('<a href="http://k.sina.com.cn/mediaDocList.d.html?uid='+ $fid + '" class="focused" target="_blank">已关注</a>');
+                        }
+                    }
+                }
+            });
+
+        })
+    }
+    else{
+        $('[ data-action="cmd-focus"]').html('<i class="icon">+</i>关注');
+    }
+    $('[ data-action="cmd-focus"]').on("click",function(){
+       
+        if(SINA_OUTLOGIN_LAYER.isLogin()){
+            var $this = $(this);
+            var _fid = SINA_OUTLOGIN_LAYER.getSinaCookie().uid;
+            $.ajax({
+                url:'//club.starvip.weibo.com/aj/galaxy/attention?' + '&uid=' + $fid + '&fid=' + _fid,
+                dataType: 'jsonp',
+                success: function (data) {
+                    if(data == true){
+                        var _href = $this.prev(".ent-source").attr("href");
+                        $this.replaceWith('<a href="//k.sina.com.cn/mediaDocList.d.html?uid='+ $fid + '" class="focused" target="_blank">已关注</a>');
+                    }
+                },
+                error: function () {
+                }
+            });
+        }else{
+            window.SINA_OUTLOGIN_LAYER.show();
+        }
+    })
+}else{
+    $('[ data-action="cmd-focus"]').hide();
+}
+// 视频
+function video(){
+    if($video_id !== ''){
+        $.ajax({
+            url:'//i.hpi.video.sina.com.cn/public/video/play?appname=kandian&appver=620&applt=ios&player=html5' + '&video_id=' + $video_id + '&tags=kandian',
+            dataType: 'jsonp',
+            jsonp: 'jsonp',
+            success: function (data) {
+                var _poster = data.data.image;
+                var _src = data.data.videos[0].dispatch_result.url;
+                $("#video").attr("poster",_poster);
+                $("#video").attr("src",_src);
+            },
+            error: function () {
+            }
+        });
+    }else{
+        
+    }
+}
+// video();
+
+/*正文页吸顶工具栏*/
+SinaPage.loadWidget({
+    trigger: {
+        id: 'top_bar_wrap'
+    },
+    require:[
+        {
+            url:'//finance.sina.com.cn/other/src/pageTools.final.js'
+            //url:'../js/base/pageTools.js'
+        }
+    ],
+    triggerAhead: false,
+    onAfterLoad: function () {
+        // console.log(this)
+        new PageTool.SetScrollFixed({
+            wrap:'top_bar',//吸顶的元素id
+            start:'top_bar_wrap',//跟随滚动元素外层id
+            end:'article-bottom',//结束滚动元素id
+            fixedClass:'top—bar-fixed'//吸顶的class
+        });
+    }
+});
+/*字体控制-分享-收藏*/
+SinaPage.loadWidget({
+    require:[
+        {
+            url:'//finance.sina.com.cn/other/src/pageTools.final.js'
+        },
+        {
+            url:'//n.sinaimg.cn/finance/fe/share.min.js'
+        }
+    ],
+    onAfterLoad: function () {
+        new PageTool.FontAdjustor();//字体调节
+        new PageTool.AddFavorite({//添加收藏
+            docid:SINA_TEXT_PAGE_INFO.docID
+        });
+        /*new PageTool.AddAniByAttr({//按钮动画
+            attr : 'ani-hover',
+            event : 'mouseover',
+            aniClass:'ani',
+            disableClass:'disable',
+            onClick:function(){},
+            onAnimationEnd:function(){}
+
+        });*/
+        //分享
+        var shareImg= document.getElementById('artibody').getElementsByTagName('img')[0];
+        var shareTitle = $('.main-title').html().replace(/<[^<>]*?font[^<>]*?>/gi,'');
+        var pcUrl = window.location.href;
+        //var toutiaoUrl = 'http://cj.sina.com.cn/article/normal_detail?url=' + encodeURIComponent(pcUrl);
+
+        //为文章顶部的分享按钮配置share组件
+        var topShare = new FnShare('#top_bar', {
+            url : pcUrl,
+            wxurl : pcUrl,
+            img :  shareImg ? shareImg.src : '',
+            title : shareTitle,
+            security :'http'
+        });
+        //点击评论按钮跳到屏幕组件
+        $('[node-type="comment"]').on('click',function(){
+            var _cmtTop = $('#bottom_sina_comment').offset().top
+            $('body,html').animate({scrollTop:_cmtTop},500);
+        });
+    }    
+});
+//评论组件
+SinaPage.loadWidget({
+    //加载评论
+    /*trigger: {
+        id: 'wrap_bottom_omment'
+    },*/
+    require:[
+        {
+            url:'//finance.sina.com.cn/other/src/article-comment-2017.js'
+        }
+    ],
+    onAfterLoad: function () {
+        //console.log(this)
+        //容器id或容器节点
+        var PAGE_INFO = window.SINA_TEXT_PAGE_INFO;
+        var _cmt = window.___sinacMNT___;
+        var wrapId = 'bottom_sina_comment';
+        //评论表单选项
+        var formOpt = {
+            channel: PAGE_INFO.channel,//频道
+            newsid: PAGE_INFO.newsid,//新闻id
+            allNewsid: '',//组新闻ID
+            parent: '',//回复的mid
+            encoding: 'utf-8',
+            commented: function (content, contentHTML) {
+                //评论后回调
+            },
+            share_url: location.href.split('#')[0],//分享的链接
+            video_url: '',//分享的视频地址
+            img_url: '',//分享图片地址
+            postTip: '我有话要说...',// 输入提示，如“请输入评论”
+            autoGrow: false,// 输入框是否自动增高
+            content: ''// 默认评论内容，如添加话题“#刘德华军同款军大衣#”
+        };
+        //评论列表选项
+        var listOpt = {
+            url:'',//评论接口URL
+            channel: PAGE_INFO.channel,
+            newsid: PAGE_INFO.newsid,
+            //showReply: 1,//显示回复串//@A:xxxx//@B:xxxx
+            group: 0,//等同于style=X
+            encoding: 'utf-8',
+            hotPageNum: 3,// 【最热评论】默认显示条数
+            latestPageNum: 3,//【最新评论】默认显示条数
+            replyShowNum: 3,//【回复列表】默认显示条数
+            replyPageNum: 15,//【回复列表】点击加载更多的条数
+            replyClickMoreTimes:3,//【回复列表】可点击加载更多回复按钮的次数
+            clickMoreTimes: 0, //【最热评论】可点击“更多评论”按钮次数,达到该次数后，显示“查看更多评论”链接，点击跳转
+            maxWordCount: 200,
+            loaded: function (self) {
+                var numSplit = function numSplit(num) {
+                    num = num + "";
+                    var re = /(-?\d+)(\d{3})/;
+                    while (re.test(num)) {
+                        num = num.replace(re, "$1,$2");
+                    }
+                    return num;
+                };
+                //console.log(self);
+                if (self.data && self.data.count && self.data.count.total) {
+                    
+                     $('[node-type="comment-num"]').html(numSplit(self.data.count.total));
+                }
+            },
+            beforeLoad: function () {
+                //alert('beforeLoad');
+            }
+        };
+        var opt = {
+            isBBS: 0,// 是否是论坛页面
+            hideList: 0 // 是否隐藏列表：某些新闻需要隐藏列表，加载数据但不渲染列表
+        };
+        window.bottom_comment = new _cmt.cmnt.FormList(wrapId, formOpt, listOpt, opt);
+        
+    }
+});
+//相关微博、相关新闻
+SinaPage.loadWidget({
+    trigger: {
+        id: 'tab_related'
+    },
+    require:[
+        // 天乙资源
+        [
+            {
+               url:'//news.sina.com.cn/video/sinaplayer/js/page/player_v1.js'
+            },{
+                url:'//h5.sinaimg.cn/m/videoPlayer/js/ty.e56f55e8.js'
+            },{
+                url:'//news.sina.com.cn/js/pctianyi/sima.js'
+            }
+        ],
+        {
+           url:'//news.sina.com.cn/js/pctianyi/tianyi.js'
+        },
+        {
+            url : '//n.sinaimg.cn/ent/kandian2017/tianyi_kandian.js'
+        },
+        {
+            url:'//n.sinaimg.cn/finance/page/ent/js/weiboList.js'
+        },
+        {
+            url:'//n.sinaimg.cn/finance/fe/Tab-min.js'
+        }
+    ],
+    onAfterLoad: function () {
+        //相关新闻-相关微博  tab按钮吸顶
+        new PageTool.SetScrollFixed({
+            wrap:'tab_related_btn',//吸顶的元素id
+            start:'tab_related',//吸顶元素浮层id
+            fixedClass:'tab-related-fixed'//吸顶的class
+        });
+        
+        // 通读检测
+        (function($) {
+            var checkTop = $('#article-bottom').offset().top;
+            var checkItv = setInterval(function (){
+                var scrollTop = 'scrollY' in window ? window.scrollY : document.documentElement.scrollTop;
+                if (scrollTop + $(window).height() > checkTop) {
+                    // console.log('read_over')
+                    tianYi.logSIMA('read_over', {
+                        url: encodeURIComponent(location.href)
+                    });
+                    clearInterval(checkItv);
+                }
+            }, 200);
+        })(window.jQuery);
+    }
+});
